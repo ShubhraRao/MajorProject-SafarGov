@@ -2,23 +2,23 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:govtapp/screens/PWD/Contractor/sendtouser.dart';
 import 'package:govtapp/screens/PWD/pwdmap.dart';
-import 'package:govtapp/screens/PWD/pwdhome.dart';
 import 'package:govtapp/screens/PWD/pwdpotdetails.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:pdf/widgets.dart' as pdfLib;
 import 'package:path_provider/path_provider.dart';
 
-class PWDReport extends StatefulWidget {
+class SendReport extends StatefulWidget {
   final String uid;
   final List<DocumentSnapshot> doc;
-  const PWDReport(this.uid, this.doc);
+  const SendReport(this.uid, this.doc);
 
   @override
-  _PWDReportState createState() => _PWDReportState(uid);
+  _SendReportState createState() => _SendReportState(uid);
 }
 
-class _PWDReportState extends State<PWDReport> {
+class _SendReportState extends State<SendReport> {
   final String uid;
   List<DocumentSnapshot> listtravel = List();
   List<DocumentSnapshot> newlist = List();
@@ -28,6 +28,8 @@ class _PWDReportState extends State<PWDReport> {
   List<LocalityCount> listloc = List();
   List<LocalityCount> listpin = List();
   int all = 1;
+  var _tapPosition;
+  bool checkBoxValue = false;
   int whichsort = 0;
   List<String> dropdown = ['View all potholes', 'Ward', 'Pincode'];
   List<String> dropdownSort = [
@@ -42,7 +44,7 @@ class _PWDReportState extends State<PWDReport> {
   int locorpin = 0;
   int maporreport = 1;
   static GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  _PWDReportState(this.uid);
+  _SendReportState(this.uid);
 
   void initState() {
     // getlist();
@@ -50,10 +52,33 @@ class _PWDReportState extends State<PWDReport> {
     print(widget.doc);
     listtravel = widget.doc;
     newlist = listtravel;
+    checknum();
     super.initState();
   }
 
-  
+  // getlist() async {
+  // QuerySnapshot querySnapshottravel =
+  //     await Firestore.instance.collection("location_travel").getDocuments();
+  // listtravel = querySnapshottravel.documents;
+  //   newlist = listtravel;
+  //   QuerySnapshot querySnapshotimage =
+  //       await Firestore.instance.collection("location_image").getDocuments();
+  //   listimage = querySnapshotimage.documents;
+  //   // listtravel.addAll(listimage);
+  //   setState(() {
+  //     isLoading = true;
+  //   });
+  //   print(listtravel);
+  // }
+
+  checknum() {
+    for (int i = 0; i < newlist.length; i++) {
+      if (newlist[i].data["NumberOfReportings"] == null) {
+        print("Printingsdhgas");
+        print(newlist[i].documentID);
+      }
+    }
+  }
 
   checkdata(newlist) {
     List<String> list1 = List();
@@ -78,6 +103,36 @@ class _PWDReportState extends State<PWDReport> {
     return listlocret;
   }
 
+  void _storePosition(TapDownDetails details) {
+    _tapPosition = details.globalPosition;
+  }
+
+  _showMenu(DocumentSnapshot doc) async {
+    final RenderBox overlay = Overlay.of(context).context.findRenderObject();
+
+    await showMenu(
+      position: RelativeRect.fromRect(
+          _tapPosition & Size(60, 60), Offset.zero & overlay.size),
+      // position: RelativeRect.fromLTRB(100, 200, 10, 200),
+      context: context,
+      items: [
+        PopupMenuItem(
+          child: GestureDetector(
+              onTap: () {
+                
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            PWDPotholeDetails(uid, doc)));
+              },
+              child: Text("View details")),
+        ),
+      ],
+      elevation: 8.0,
+    );
+  }
+
   checkpincode(newlist) {
     List<String> listpin1 = List();
     List<LocalityCount> listpincoderet = List();
@@ -99,9 +154,10 @@ class _PWDReportState extends State<PWDReport> {
   }
 
   sortbypriority(listn) {
-    Comparator<DocumentSnapshot> sortById =
-        (a, b) => a.data["NumberOfReportings"].compareTo(b.data["NumberOfReportings"]);
+    Comparator<DocumentSnapshot> sortById = (a, b) =>
+        a.data["NumberOfReportings"].compareTo(b.data["NumberOfReportings"]);
     listn.sort(sortById);
+    print(listn);
     return listn;
   }
 
@@ -146,46 +202,59 @@ class _PWDReportState extends State<PWDReport> {
     }
     return retlist;
   }
-  
+
+  List _selecteCategorys = List();
+  Map<String, dynamic> categories1;
+
+  void _onCategorySelected(bool selected, categoryId) {
+    if (selected == true) {
+      setState(() {
+        _selecteCategorys.add(categoryId);
+        print("Selected");
+        print(_selecteCategorys);
+      });
+    } else if (selected == false) {
+      setState(() {
+        _selecteCategorys.remove(categoryId);
+        print("Selected");
+        print(_selecteCategorys);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     listloc = checkdata(newlist);
-    return WillPopScope(
-          onWillPop: () { 
-            Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => PWDhome(widget.uid)));
-           },
-          child: Scaffold(
-        key: _scaffoldKey,
-        appBar: AppBar(
-          title: Text("REPORTED"),
-          backgroundColor: Color(0xFF11249F),
-          actions: <Widget>[
-            (maporreport == 1)
-                ? IconButton(
-                    icon: Icon(Icons.location_on),
-                    onPressed: () {
-                      print("Go to map");
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => PWDViewMap(uid, newlist)));
-                    })
-                : SizedBox(width: 0.0),
-            (maporreport == 1)
-                ? IconButton(
-                    icon: Icon(Icons.picture_as_pdf),
-                    onPressed: () {
-                      _generatePdfAndView(context);
-                    })
-                : SizedBox(width: 0.0),
-          ],
-        ),
-        body: Column(children: <Widget>[
-          Padding(
+    return Scaffold(
+      key: _scaffoldKey,
+      appBar: AppBar(
+        title: Text("REPORT"),
+        backgroundColor: Color(0xFF11249F),
+        // actions: <Widget>[
+        //   (maporreport == 1)
+        //       ? IconButton(
+        //           icon: Icon(Icons.location_on),
+        //           onPressed: () {
+        //             print("Go to map");
+        //             Navigator.push(
+        //                 context,
+        //                 MaterialPageRoute(
+        //                     builder: (context) => PWDViewMap(uid, newlist)));
+        //           })
+        //       : SizedBox(width: 0.0),
+        //   (maporreport == 1)
+        //       ? IconButton(
+        //           icon: Icon(Icons.picture_as_pdf),
+        //           onPressed: () {
+        //             _generatePdfAndView(context);
+        //           })
+        //       : SizedBox(width: 0.0),
+        // ],
+      ),
+      body: Column(children: <Widget>[
+        Container(
+          color: Color(0xFF6bb0ff),
+          child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: Row(
               children: <Widget>[
@@ -195,7 +264,7 @@ class _PWDReportState extends State<PWDReport> {
                         style: TextStyle(
                             fontSize: 14.0,
                             fontWeight: FontWeight.w400,
-                            color: Color(0xFF11249F))),
+                            color: Colors.black)),
                     value: _selectedLocation,
                     onChanged: (newValue) {
                       setState(() {
@@ -208,7 +277,7 @@ class _PWDReportState extends State<PWDReport> {
                             style: TextStyle(
                                 fontSize: 14.0,
                                 fontWeight: FontWeight.w400,
-                                color: Color(0xFF11249F))),
+                                color: Colors.black)),
                         value: location,
                         onTap: () {
                           if (location == "Ward") {
@@ -339,13 +408,42 @@ class _PWDReportState extends State<PWDReport> {
               ],
             ),
           ),
-          (all == 1)
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+        ),
+        (all == 1)
+            ? Container(
+                color: Color(0xFFe6f1ff),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    // Padding(
-                    //   padding:
-                    // )
+                    Padding(
+                      padding: const EdgeInsets.only(left: 11.0),
+                      child: Row(children: <Widget>[
+                        new Checkbox(
+                            value: checkBoxValue,
+                            activeColor: Colors.blue,
+                            onChanged: (bool newValue) {
+                              setState(() {
+                                if (newValue == true) {
+                                  for (int i = 0; i < newlist.length; i++) {
+                                    _selecteCategorys
+                                        .add(newlist[i].documentID);
+                                  }
+                                  checkBoxValue = newValue;
+                                } else if (newValue == false) {
+                                  _selecteCategorys.removeRange(
+                                      0, _selecteCategorys.length);
+
+                                  checkBoxValue = newValue;
+                                  print(_selecteCategorys);
+                                }
+                              });
+                            }),
+                        Text(
+                          'Select All',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ]),
+                    ),
                     Padding(
                       padding: const EdgeInsets.only(right: 8.0),
                       child: Text("Priority",
@@ -354,115 +452,174 @@ class _PWDReportState extends State<PWDReport> {
                               color: Color(0xFF11249F))),
                     ),
                   ],
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: Text("No. of potholes",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF11249F))),
-                    ),
-                  ],
                 ),
-          Expanded(
-            child: Container(
-                child: (all == 0)
-                    ? ListView.builder(
-                        itemCount: listuni.length,
-                        itemBuilder: (context, index) {
-                          return GestureDetector(
-                            onTap: () {
-                              print("Tapped!");
-                              if (locorpin == 1) {
-                                setState(() {
-                                  maporreport = 1;
-                                  whichsort = 0;
-                                  all = 1;
-                                  newlist =
-                                      getlocfilteredlist(listuni[index].locality);
-                                });
-                              } else if (locorpin == 2) {
-                                setState(() {
-                                  maporreport = 1;
-                                  whichsort = 0;
-                                  all = 1;
-                                  newlist =
-                                      getpinfilteredlist(listuni[index].locality);
-                                });
-                              }
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                children: <Widget>[
-                                  Expanded(child: Text(listuni[index].locality)),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(listuni[index].count.toString(),
-                                        style: TextStyle(
-                                            fontSize: 18.0,
-                                            fontWeight: FontWeight.bold)),
-                                  )
-                                ],
-                              ),
-                            ),
-                          );
-                        })
-                    : ListView.builder(
-                        itemCount: newlist.length,
-                        itemBuilder: (context, index) {
-                          return GestureDetector(
-                            onTap: () {
-                              print("Ughgahdadtapped");
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: Text("No. of potholes",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF11249F))),
+                  ),
+                ],
+              ),
+        Expanded(
+          child: Container(
+              child: (all == 0)
+                  ? ListView.builder(
+                      itemCount: listuni.length,
+                      itemBuilder: (context, index) {
+                        return GestureDetector(
+                          onTap: () {
+                            print("Tapped!");
+                            if (locorpin == 1) {
                               setState(() {
                                 maporreport = 1;
                                 whichsort = 0;
+                                all = 1;
+                                newlist =
+                                    getlocfilteredlist(listuni[index].locality);
                               });
-
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => PWDPotholeDetails(
-                                          uid, newlist[index])));
-                            },
-                            child: Column(
+                            } else if (locorpin == 2) {
+                              setState(() {
+                                maporreport = 1;
+                                whichsort = 0;
+                                all = 1;
+                                newlist =
+                                    getpinfilteredlist(listuni[index].locality);
+                              });
+                            }
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
                               children: <Widget>[
+                                Expanded(child: Text(listuni[index].locality)),
                                 Padding(
-                                  padding: const EdgeInsets.all(10.0),
-                                  child: Row(children: <Widget>[
-                                    Expanded(
-                                      child: Text(newlist[index].data["address"]),
-                                    ),
-                                    SizedBox(width: 10.0),
-                                    Text(
-                                        newlist[index]
-                                            .data["NumberOfReportings"]
-                                            .toString(),
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18.0))
-                                  ]),
-                                ),
-                                Divider(color: Colors.grey),
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(listuni[index].count.toString(),
+                                      style: TextStyle(
+                                          fontSize: 18.0,
+                                          fontWeight: FontWeight.bold)),
+                                )
                               ],
                             ),
-                          );
-                          // ListTile(
-                          //     title: Text(newlist[index].data["address"]),
-                          //     subtitle: Text(newlist[index].data["priority"].toString())
-                          // Text(Jiffy(DateTime.parse(newlist[index]
-                          //         .data["timeStamp"]
-                          //         .toDate()
-                          //         .toString()))
-                          //     .yMMMMEEEEdjm)
-                          //     );
-                        })),
-          )
-        ]),
-      ),
+                          ),
+                        );
+                      })
+                  : ListView.builder(
+                      itemCount: newlist.length,
+                      itemBuilder: (context, index) {
+                        return GestureDetector(
+                          onTapDown: _storePosition,
+                          onLongPress: () {
+                            _showMenu(newlist[index]);
+                          },
+                          child: CheckboxListTile(
+                            controlAffinity: ListTileControlAffinity.leading,
+                            value: _selecteCategorys
+                                .contains(newlist[index].documentID),
+                            onChanged: (bool selected) {
+                              // setState(() {
+                              _onCategorySelected(
+                                  selected, newlist[index].documentID);
+                              // });
+                            },
+                            title: Row(children: <Widget>[
+                              Expanded(
+                                child: Text(
+                                   newlist[index].data["address"],
+                                    // newlist[index].data["placename"] +
+                                    //     ", " +
+                                    //     newlist[index].data["thoroughfare"] +
+                                    //     ", " +
+                                    //     newlist[index].data["subLocality"],
+                                    style: TextStyle(fontSize: 12.0)),
+                              ),
+                              SizedBox(width: 10.0),
+                              Text(
+                                  newlist[index]
+                                      .data["NumberOfReportings"]
+                                      .toString(),
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18.0))
+                            ]),
+                          ),
+                        );
+                        // return GestureDetector(
+                        //   onTap: () {
+                        //     print("Ughgahdadtapped");
+                        //     setState(() {
+                        //       maporreport = 1;
+                        //       whichsort = 0;
+                        //     });
+
+                        //     Navigator.push(
+                        //         context,
+                        //         MaterialPageRoute(
+                        //             builder: (context) => PWDPotholeDetails(
+                        //                 uid, newlist[index])));
+                        //   },
+                        //   child: Column(
+                        //     children: <Widget>[
+                        //       Padding(
+                        //         padding: const EdgeInsets.all(10.0),
+                        //         child: Row(children: <Widget>[
+                        //           Expanded(
+                        //             child: Text(newlist[index].data["address"]),
+                        //           ),
+                        //           SizedBox(width: 10.0),
+                        //           Text(
+                        //               newlist[index]
+                        //                   .data["priority"]
+                        //                   .toString(),
+                        //               style: TextStyle(
+                        //                   fontWeight: FontWeight.bold,
+                        //                   fontSize: 18.0))
+                        //         ]),
+                        //       ),
+                        //       Divider(color: Colors.grey),
+                        //     ],
+                        //   ),
+                        // );
+                        // ListTile(
+                        //     title: Text(newlist[index].data["address"]),
+                        //     subtitle: Text(newlist[index].data["priority"].toString())
+                        // Text(Jiffy(DateTime.parse(newlist[index]
+                        //         .data["timeStamp"]
+                        //         .toDate()
+                        //         .toString()))
+                        //     .yMMMMEEEEdjm)
+                        //     );
+                      })),
+        ),
+        (all != 0)
+            ? Container(
+                color: Color(0xFF11249F),
+                width: MediaQuery.of(context).size.width,
+                child: RaisedButton(
+                    color: Color(0xFF11249F),
+                    child: Text(
+                        "SEND REPORT (" +
+                            _selecteCategorys.length.toString() +
+                            ")",
+                        style: TextStyle(color: Colors.white)),
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  SendToUser(
+                                    pwdid: uid, 
+                                    selectedrep: _selecteCategorys)));
+                    }),
+              )
+            : SizedBox(width: 0.0),
+      ]),
     );
   }
 
@@ -483,7 +640,7 @@ class _PWDReportState extends State<PWDReport> {
                   Jiffy(DateTime.parse(
                           item.data["timeStamp"].toDate().toString()))
                       .yMMMMdjm,
-                  (item.data['source'] == "Sensor" || item.data['Source'] == "Sensor" || item.data['source'] == "sensor" || item.data['Source'] == "sensor") ? "Travel" : "Image"
+                  (item.data['url'] != null) ? "Image" : "Sensor"
                 ])
           ]),
         ],

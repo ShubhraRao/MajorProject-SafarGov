@@ -2,23 +2,26 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:social_share/social_share.dart';
+import 'package:govtapp/screens/PWD/pwdresport.dart';
 
-class ERPotholeDetails extends StatefulWidget {
-  final String erid;
+class FixedDetails extends StatefulWidget {
+  final String pwdid;
   final DocumentSnapshot doc;
 
-  const ERPotholeDetails(this.erid, this.doc);
+  const FixedDetails(this.pwdid, this.doc);
   @override
-  _ERPotholeDetailsState createState() => _ERPotholeDetailsState(erid, doc);
+  _FixedDetailsState createState() => _FixedDetailsState(pwdid, doc);
 }
 
-class _ERPotholeDetailsState extends State<ERPotholeDetails> {
+class _FixedDetailsState extends State<FixedDetails> {
   final DocumentSnapshot doc;
-  final String erid;
+  final String pwdid;
+  static GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  _ERPotholeDetailsState(this.erid, this.doc);
+  _FixedDetailsState(this.pwdid, this.doc);
   final firestoreInstance = Firestore.instance;
   bool isLoading = false;
+  int success = 0;
 
   void _showShareDialog() {
     showDialog<bool>(
@@ -53,11 +56,17 @@ class _ERPotholeDetailsState extends State<ERPotholeDetails> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        SocialShare.shareWhatsapp("Pothole Details:\n" +doc.data["address"] + ", (" + doc.data["lat"].toString() +", " + doc.data["lon"].toString()+" ). Sent from SafarGov Mobile App")
+                        SocialShare.shareWhatsapp("Pothole Details:\n" +
+                                doc.data["address"] +
+                                ", (" +
+                                doc.data["lat"].toString() +
+                                ", " +
+                                doc.data["lon"].toString() +
+                                " ). Sent from SafarGov Mobile App")
                             .then((data) {
                           print(data);
                         });
-                      }, 
+                      },
                       child: Row(
                         children: <Widget>[
                           Padding(
@@ -75,7 +84,13 @@ class _ERPotholeDetailsState extends State<ERPotholeDetails> {
                     GestureDetector(
                       onTap: () {
                         SocialShare.shareSms(
-                                "Pothole Details:\n" +doc.data["address"] + ", (" + doc.data["lat"].toString() +", " + doc.data["lon"].toString()+" ). Sent from SafarGov Mobile App",
+                                "Pothole Details:\n" +
+                                    doc.data["address"] +
+                                    ", (" +
+                                    doc.data["lat"].toString() +
+                                    ", " +
+                                    doc.data["lon"].toString() +
+                                    " ). Sent from SafarGov Mobile App",
                                 url: "",
                                 trailingText: "")
                             .then((data) {
@@ -95,20 +110,26 @@ class _ERPotholeDetailsState extends State<ERPotholeDetails> {
                     // Divider(
                     //   color: Colors.grey,
                     // ),
-                    
                   ],
                 ),
               ),
             ));
   }
 
+  List<DocumentSnapshot> listtravel;
+
+
+
+
   @override
   Widget build(BuildContext context) {
     // print(colname);
     return Scaffold(
+        key: _scaffoldKey,
         appBar: AppBar(
           backgroundColor: Color(0xFF11249F),
           title: Text("Details"),
+          
         ),
         body: Column(
           children: <Widget>[
@@ -127,45 +148,28 @@ class _ERPotholeDetailsState extends State<ERPotholeDetails> {
                   DataCell(Text(doc.data["NumberOfReportings"].toString())),
                 ]),
                 DataRow(cells: [
-                  DataCell(Text("Ward: ")),
-                  DataCell(Text(doc.data["subLocality"])),
-                ]),
-                DataRow(cells: [
                   DataCell(Text("Pincode: ")),
                   DataCell(Text(doc.data["pincode"])),
                 ]),
                 DataRow(cells: [
                   DataCell(Text("Date: ")),
                   DataCell(
-                    Text(Jiffy(DateTime.parse(doc.data["timeStamp"].toDate().toString()))
+                    Text(Jiffy(DateTime.parse(
+                            doc.data["timeStamp"].toDate().toString()))
                         .yMMMMEEEEdjm),
                   ),
                 ]),
                 DataRow(cells: [
                   DataCell(Text("Location: ")),
                   DataCell(
-                    Text(doc.data["lat"].toString() + ", " + doc.data["lon"].toString()),
+                    Text(doc.data["lat"].toString() +
+                        ", " +
+                        doc.data["lon"].toString()),
                   ),
                 ]),
               ],
             ),
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 16.0),
-              child: RaisedButton(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                onPressed: () async {
-                  _showShareDialog();
-                },
-                padding: EdgeInsets.all(12),
-                color: Color(0xFF11249F),
-                child: Text('Share details',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16)),
-              ),
-            ),
+            
           ],
         ));
     // });

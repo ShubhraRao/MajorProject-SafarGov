@@ -2,23 +2,26 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:social_share/social_share.dart';
+import 'package:govtapp/screens/PWD/pwdresport.dart';
 
-class ERPotholeDetails extends StatefulWidget {
-  final String erid;
+class PWDPotholeDetails extends StatefulWidget {
+  final String pwdid;
   final DocumentSnapshot doc;
 
-  const ERPotholeDetails(this.erid, this.doc);
+  const PWDPotholeDetails(this.pwdid, this.doc);
   @override
-  _ERPotholeDetailsState createState() => _ERPotholeDetailsState(erid, doc);
+  _ERPotholeDetailsState createState() => _ERPotholeDetailsState(pwdid, doc);
 }
 
-class _ERPotholeDetailsState extends State<ERPotholeDetails> {
+class _ERPotholeDetailsState extends State<PWDPotholeDetails> {
   final DocumentSnapshot doc;
-  final String erid;
+  final String pwdid;
+  static GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  _ERPotholeDetailsState(this.erid, this.doc);
+  _ERPotholeDetailsState(this.pwdid, this.doc);
   final firestoreInstance = Firestore.instance;
   bool isLoading = false;
+  int success = 0;
 
   void _showShareDialog() {
     showDialog<bool>(
@@ -53,11 +56,17 @@ class _ERPotholeDetailsState extends State<ERPotholeDetails> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        SocialShare.shareWhatsapp("Pothole Details:\n" +doc.data["address"] + ", (" + doc.data["lat"].toString() +", " + doc.data["lon"].toString()+" ). Sent from SafarGov Mobile App")
+                        SocialShare.shareWhatsapp("Pothole Details:\n" +
+                                doc.data["address"] +
+                                ", (" +
+                                doc.data["lat"].toString() +
+                                ", " +
+                                doc.data["lon"].toString() +
+                                " ). Sent from SafarGov Mobile App")
                             .then((data) {
                           print(data);
                         });
-                      }, 
+                      },
                       child: Row(
                         children: <Widget>[
                           Padding(
@@ -75,7 +84,13 @@ class _ERPotholeDetailsState extends State<ERPotholeDetails> {
                     GestureDetector(
                       onTap: () {
                         SocialShare.shareSms(
-                                "Pothole Details:\n" +doc.data["address"] + ", (" + doc.data["lat"].toString() +", " + doc.data["lon"].toString()+" ). Sent from SafarGov Mobile App",
+                                "Pothole Details:\n" +
+                                    doc.data["address"] +
+                                    ", (" +
+                                    doc.data["lat"].toString() +
+                                    ", " +
+                                    doc.data["lon"].toString() +
+                                    " ). Sent from SafarGov Mobile App",
                                 url: "",
                                 trailingText: "")
                             .then((data) {
@@ -95,20 +110,66 @@ class _ERPotholeDetailsState extends State<ERPotholeDetails> {
                     // Divider(
                     //   color: Colors.grey,
                     // ),
-                    
                   ],
                 ),
               ),
             ));
   }
 
+  List<DocumentSnapshot> listtravel;
+
+  getlist() async {
+    QuerySnapshot querySnapshottravel =
+        await Firestore.instance.collection("location_travel").getDocuments();
+    listtravel = querySnapshottravel.documents;
+    if (listtravel.isNotEmpty) {
+      setState(() {
+        success = 2;
+      });
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => PWDReport(pwdid, listtravel)));
+    }
+
+    // newlist = listtravel;
+
+    // setState(() {
+    //   isLoading = true;
+    // });
+    // print(listtravel);
+  }
+
   @override
   Widget build(BuildContext context) {
     // print(colname);
     return Scaffold(
+        key: _scaffoldKey,
         appBar: AppBar(
+          // flexibleSpace: Container(
+          //   decoration: BoxDecoration(
+          //     gradient: LinearGradient(
+          //       begin: Alignment.topRight,
+          //       end: Alignment.bottomLeft,
+          //       colors: [
+          //         Color(0xFF3383CD),
+          //         Color(0xFF11249F),
+          //       ],
+          //     ),
+          //   ),
+          // ),
           backgroundColor: Color(0xFF11249F),
           title: Text("Details"),
+          actions: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: GestureDetector(
+                  child: Icon(Icons.share),
+                  onTap: () {
+                    _showShareDialog();
+                  }),
+            )
+          ],
         ),
         body: Column(
           children: <Widget>[
@@ -127,24 +188,23 @@ class _ERPotholeDetailsState extends State<ERPotholeDetails> {
                   DataCell(Text(doc.data["NumberOfReportings"].toString())),
                 ]),
                 DataRow(cells: [
-                  DataCell(Text("Ward: ")),
-                  DataCell(Text(doc.data["subLocality"])),
-                ]),
-                DataRow(cells: [
                   DataCell(Text("Pincode: ")),
                   DataCell(Text(doc.data["pincode"])),
                 ]),
                 DataRow(cells: [
                   DataCell(Text("Date: ")),
                   DataCell(
-                    Text(Jiffy(DateTime.parse(doc.data["timeStamp"].toDate().toString()))
+                    Text(Jiffy(DateTime.parse(
+                            doc.data["timeStamp"].toDate().toString()))
                         .yMMMMEEEEdjm),
                   ),
                 ]),
                 DataRow(cells: [
                   DataCell(Text("Location: ")),
                   DataCell(
-                    Text(doc.data["lat"].toString() + ", " + doc.data["lon"].toString()),
+                    Text(doc.data["lat"].toString() +
+                        ", " +
+                        doc.data["lon"].toString()),
                   ),
                 ]),
               ],
@@ -152,19 +212,49 @@ class _ERPotholeDetailsState extends State<ERPotholeDetails> {
             Padding(
               padding: EdgeInsets.symmetric(vertical: 16.0),
               child: RaisedButton(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                onPressed: () async {
-                  _showShareDialog();
-                },
-                padding: EdgeInsets.all(12),
-                color: Color(0xFF11249F),
-                child: Text('Share details',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16)),
-              ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  onPressed: () async {
+                    setState(() {
+                      success = 3;
+                    });
+                    DocumentReference ref = await Firestore.instance
+                        .collection("fixed_potholes")
+                        .add({
+                      'fixedby': pwdid,
+                      'address': doc.data["address"],
+                      'lat': doc.data["lat"],
+                      'lon': doc.data["lon"],
+                      'timeStamp': DateTime.now(),
+                      'pincode': doc.data["pincode"],
+                      'subLocality': doc.data["subLocality"],
+                      'NumberOfReportings': doc.data["NumberOfReportings"]
+                    }).then((value) {
+                      setState(() {
+                        success = 1;
+                      });
+                    });
+
+                    try {
+                      Firestore.instance
+                          .collection("location_travel")
+                          .document(doc.documentID)
+                          .delete()
+                          .then((value) {
+                        getlist();
+                      });
+                    } catch (e) {
+                      print(e.toString());
+                    }
+                  },
+                  padding: EdgeInsets.all(12),
+                  color: Color(0xFF11249F),
+                  child: (success == 0)
+                      ? Text('Fix it!',
+                          style: TextStyle(color: Colors.white, fontSize: 16))
+                      : Text("Loading ...",
+                          style: TextStyle(color: Colors.white, fontSize: 16))),
             ),
           ],
         ));

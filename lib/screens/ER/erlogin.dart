@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:govtapp/screens/ER/erdashboard.dart';
+import 'package:govtapp/unused/erdashboard.dart';
+import 'package:govtapp/screens/ER/erhome.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ERLoginPage extends StatefulWidget {
@@ -14,8 +15,9 @@ class _LoginPageState extends State<ERLoginPage> {
   final GlobalKey<FormState> _loginFormKey = GlobalKey<FormState>();
   TextEditingController emailInputController;
   TextEditingController pwdInputController;
-  TextEditingController pinInputController;
+  TextEditingController wardInputController;
   QuerySnapshot querySnapshot;
+  String error="";
 
   // final databaseReference = Firestore.instance;
 
@@ -28,7 +30,7 @@ class _LoginPageState extends State<ERLoginPage> {
   initState() {
     emailInputController = new TextEditingController();
     pwdInputController = new TextEditingController();
-    pinInputController = new TextEditingController();
+    wardInputController = new TextEditingController();
 
     getLocImage().then((results) {
       setState(() {
@@ -65,32 +67,37 @@ class _LoginPageState extends State<ERLoginPage> {
             emailInputController.text) {
           if (querySnapshot.documents[i].data['useless'] ==
               pwdInputController.text) {
-            print(pwdInputController.text);
-            print(pinInputController.text);
-            print(querySnapshot.documents[i].data['pincode']);
-            if (querySnapshot.documents[i].data['pincode'].toString().trim() ==
-                pinInputController.text.trim()) {
+            
+            if (querySnapshot.documents[i].data['wardname'].toString().trim().toLowerCase() ==
+                wardInputController.text.trim().toLowerCase()) {
               print("Correct");
 
               SharedPreferences eruseremail = await SharedPreferences.getInstance();
               eruseremail.setString('email', querySnapshot.documents[i].data['email']);
 
-              SharedPreferences erpincode = await SharedPreferences.getInstance();
-              erpincode.setString('pincode', querySnapshot.documents[i].data['pincode'].toString().trim());
+              SharedPreferences erward = await SharedPreferences.getInstance();
+              erward.setString('wardname', querySnapshot.documents[i].data['wardname'].toString().trim());
 
-
+              SharedPreferences erid = await SharedPreferences.getInstance();
+              erid.setString('erid', querySnapshot.documents[i].data['erid'].toString().trim());
               Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) =>
-                          ERDashboard(pinInputController.text.trim())));
+                          ERhome(querySnapshot.documents[i].data['erid'].toString(), wardInputController.text.trim())));
             }
           } else {
             //TODO: Show error
             print("Wrong pw");
+            setState(() {
+              error="Invalid credentials";
+            });
           }
         } else {
           print("Wrong email");
+          setState(() {
+              error="Invalid credentials";
+            });
         }
       }
     } else {
@@ -101,8 +108,9 @@ class _LoginPageState extends State<ERLoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFe6f5fc),
         appBar: AppBar(
-          backgroundColor: Color(0xFF31427d),
+          backgroundColor: Color(0xFF11249F),
           title: Text("Login"),
         ),
         body: Container(
@@ -112,33 +120,35 @@ class _LoginPageState extends State<ERLoginPage> {
               key: _loginFormKey,
               child: Column(
                 children: <Widget>[
+                  Text(error, style: TextStyle(color: Colors.red)),
                   TextFormField(
                     decoration: InputDecoration(
-                        labelText: 'Email*', hintText: "john.doe@gmail.com"),
+                        labelText: 'Email*'),
                     controller: emailInputController,
                     keyboardType: TextInputType.emailAddress,
                     validator: emailValidator,
                   ),
                   TextFormField(
                     decoration: InputDecoration(
-                        labelText: 'Password*', hintText: "********"),
+                        labelText: 'Password*'),
                     controller: pwdInputController,
                     obscureText: true,
                     validator: pwdValidator,
                   ),
                   TextFormField(
+                    textCapitalization: TextCapitalization.sentences,
                     decoration: InputDecoration(
-                        labelText: 'Pincode*', hintText: "560001"),
-                    keyboardType: TextInputType.number,
-                    controller: pinInputController,
-                    validator: pwdValidator,
+                        labelText: 'Ward Name*'),
+                    // keyboardType: TextInputType.number,
+                    controller: wardInputController,
+                    
                   ),
                   SizedBox(
                     height: 20.0,
                   ),
                   RaisedButton(
                     child: Text("Login"),
-                    color: Color(0xFF31427d),
+                    color: Color(0xFF11249F),
                     textColor: Colors.white,
                     onPressed: () {
                       print("check");

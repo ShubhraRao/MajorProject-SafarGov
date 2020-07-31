@@ -1,37 +1,37 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:govtapp/screens/Contractor/condetails.dart';
 
-import 'details.dart';
 // import 'package:potholedetection/screens/try2.dart';
 
-class ERViewMap extends StatelessWidget {
-  final String ward;
-  final String erid;
-  const ERViewMap(this.erid, this.ward);
+class ContractorMap extends StatelessWidget {
+  final String fname, lname, phone;
+  final List<DocumentSnapshot> newlist;
+  const ContractorMap(this.newlist, this.fname, this.lname, this.phone);
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: "SafarGov",
       debugShowCheckedModeBanner: false,
-      home: ViewMapPage(this.erid, this.ward),
+      home: ViewMapPage(this.newlist, this.fname, this.lname, this.phone),
     );
   }
 }
 
 class ViewMapPage extends StatefulWidget {
-  final String ward;
-  final String erid;
-
-  const ViewMapPage(this.erid, this.ward);
+  
+  final List<DocumentSnapshot> newlist;
+final String fname, lname, phone;
+  const ViewMapPage(this.newlist, this.fname, this.lname, this.phone);
   @override
-  _ViewMapPageState createState() => _ViewMapPageState(this.erid, this.ward);
+  _ViewMapPageState createState() => _ViewMapPageState(this.newlist, this.fname, this.lname, this.phone);
 }
 
 class _ViewMapPageState extends State<ViewMapPage> {
-  final String ward;
-  final String erid;
-  bool isLoading = false;
+final String fname, lname, phone;
+  final List<DocumentSnapshot> newlist;
+  // bool isLoading = false;
   static GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   List<Marker> allMarkers = [];
@@ -42,9 +42,9 @@ class _ViewMapPageState extends State<ViewMapPage> {
 
   GoogleMapController _controller;
   // QuerySnapshot querySnapshot;
-  QuerySnapshot querySnapshot1;
+  // QuerySnapshot querySnapshot1;
 
-  _ViewMapPageState(this.erid, this.ward);
+  _ViewMapPageState(this.newlist, this.fname, this.lname, this.phone);
 
   @override
   void initState() {
@@ -56,18 +56,7 @@ class _ViewMapPageState extends State<ViewMapPage> {
     //   });
     // });
 
-   
-
-    getLocTravel().then((results1) {
-      setState(() {
-        querySnapshot1 = results1;
-        setState(() {
-          isLoading= true;
-        });
-        // print(querySnapshot1.documents);
-      });
-    });
-  }
+     }
 
    void _showDialog(DocumentSnapshot doc) {
       showDialog(
@@ -98,7 +87,7 @@ class _ViewMapPageState extends State<ViewMapPage> {
               context,
               MaterialPageRoute(
                   builder: (context) =>
-                      ERPotholeDetails(erid, doc)));
+                      ConDetails(doc, fname, lname, phone)));
                     },
                     child: Container(
                       padding: EdgeInsets.only(top: 20.0, bottom: 20.0),
@@ -123,47 +112,22 @@ class _ViewMapPageState extends State<ViewMapPage> {
       );
     }
 
-  // getLat() {
-  //   for (int i = 0; i < querySnapshot.documents.length; i++) {
-  //     if (querySnapshot.documents[i].data['pincode'] == pincode) {
-  //       print(querySnapshot.documents[i].data['pincode']);
-  //       lat1 = parseDouble(querySnapshot.documents[i].data['lat']);
-  //       lon1 = parseDouble(querySnapshot.documents[i].data['lon']);
-
-  //       allMarkers.add(Marker(
-  //           markerId: MarkerId(i.toString()),
-  //           draggable: true,
-  //           onTap: () {
-  //             print("Alert!");
-  //             _showDialog(querySnapshot.documents[i]);
-  //             CameraPosition(target: LatLng(lat1, lon1), zoom: 16.0);
-  //           },
-  //           position: LatLng(lat1, lon1)));
-  //     }
-  //   }
-  //   // print(allMarkers);
-  // }
 
   getLon() {
-    print("Happening");
-    print(ward);
-    for (int i = 0; i < querySnapshot1.documents.length; i++) {
-      print(querySnapshot1.documents[i].data['subLocality']);
-      if (querySnapshot1.documents[i].data['subLocality'].toString().trim().toLowerCase() == ward.trim().toLowerCase()) {
-        print(querySnapshot1.documents[i].data['subLocality']);
-        lat1 = parseDouble(querySnapshot1.documents[i].data['lat']);
-        lon1 = parseDouble(querySnapshot1.documents[i].data['lon']);
-print("Happening");
+     
+    for (int i = 0; i < newlist.length; i++) {
+      lat1 = parseDouble(newlist[i].data['lat']);
+        lon1 = parseDouble(newlist[i].data['lon']);
         allMarkers.add(Marker(
             markerId: MarkerId(i.toString()),
             draggable: true,
             onTap: () {
-              _showDialog(querySnapshot1.documents[i]);
+              _showDialog(newlist[i]);
 
               CameraPosition(target: LatLng(lat1, lon1), zoom: 16.0);
             },
             position: LatLng(lat1, lon1)));
-      }
+      
     }
     print(allMarkers);
   }
@@ -187,11 +151,7 @@ print("Happening");
   //   return await Firestore.instance.collection(imagecname).getDocuments();
   // }
 
-  getLocTravel() async {
-    return await Firestore.instance
-        .collection(travelcname)
-        .getDocuments();
-  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -201,14 +161,14 @@ print("Happening");
     //   getLon();
     // }
     // getLat();
-    if(isLoading)
+    // if(isLoading)
     getLon();
     return Scaffold(
       key: _scaffoldKey,
       // appBar: AppBar(
       //   title: Text('Maps'),
       // ),
-      body: (!isLoading) ? Center(child: CircularProgressIndicator()) : Stack(children: [
+      body:  Stack(children: [
         Container(
           height: MediaQuery.of(context).size.height,
           width: MediaQuery.of(context).size.width,

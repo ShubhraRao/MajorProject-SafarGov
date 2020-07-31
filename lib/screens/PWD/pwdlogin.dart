@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:govtapp/unused/pwddashboard.dart';
+import 'package:govtapp/screens/PWD/pwdhome.dart';
+import 'package:govtapp/screens/PWD/pwdresport.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PWDLoginPage extends StatefulWidget {
   PWDLoginPage({Key key}) : super(key: key);
@@ -13,6 +17,7 @@ class _LoginPageState extends State<PWDLoginPage> {
   TextEditingController emailInputController;
   TextEditingController pwdInputController;
   QuerySnapshot querySnapshot;
+  String error = "";
 
   // final databaseReference = Firestore.instance;
 
@@ -54,36 +59,60 @@ class _LoginPageState extends State<PWDLoginPage> {
     }
   }
 
-  checkdata() {
+  checkdata() async {
     if (querySnapshot != null) {
       for (int i = 0; i < querySnapshot.documents.length; i++) {
         if (querySnapshot.documents[i].data['email'] ==
             emailInputController.text) {
           print("Email");
 
-          if (querySnapshot.documents[i].data['password'] ==
+          if (querySnapshot.documents[i].data['useless'] ==
               pwdInputController.text) {
-            //TODO: Navigate to next page
+            SharedPreferences pwduseremail =
+                await SharedPreferences.getInstance();
+            pwduseremail.setString(
+                'email', querySnapshot.documents[i].data['email']);
+
+            SharedPreferences pwdid = await SharedPreferences.getInstance();
+            pwdid.setString('pwdid',
+                querySnapshot.documents[i].data['pwdid'].toString().trim());
             print("SuccessPW");
-            
+
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => PWDhome(querySnapshot
+                        .documents[i].data['pwdid']
+                        .toString()
+                        .trim())));
           } else {
             //TODO: Show error
             print("Wrong pw");
+            setState(() {
+              error = "Invalid credentials";
+            });
           }
         } else {
           print("Wrong email");
+          setState(() {
+            error = "Invalid credentials";
+          });
         }
       }
     } else {
       print("QS is null");
+      setState(() {
+        error = "Invalid credentials";
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFe6f5fc),
         appBar: AppBar(
-          backgroundColor: Color(0xFF31427d),
+          backgroundColor: Color(0xFF11249F),
           title: Text("Login"),
         ),
         body: Container(
@@ -93,16 +122,15 @@ class _LoginPageState extends State<PWDLoginPage> {
               key: _loginFormKey,
               child: Column(
                 children: <Widget>[
+                  Text(error, style: TextStyle(color: Colors.red)),
                   TextFormField(
-                    decoration: InputDecoration(
-                        labelText: 'Email*', hintText: "john.doe@gmail.com"),
+                    decoration: InputDecoration(labelText: 'Email*'),
                     controller: emailInputController,
                     keyboardType: TextInputType.emailAddress,
                     validator: emailValidator,
                   ),
                   TextFormField(
-                    decoration: InputDecoration(
-                        labelText: 'Password*', hintText: "********"),
+                    decoration: InputDecoration(labelText: 'Password*'),
                     controller: pwdInputController,
                     obscureText: true,
                     validator: pwdValidator,
@@ -112,7 +140,7 @@ class _LoginPageState extends State<PWDLoginPage> {
                   ),
                   RaisedButton(
                     child: Text("Login"),
-                    color: Color(0xFF31427d),
+                    color: Color(0xFF11249F),
                     textColor: Colors.white,
                     onPressed: () {
                       print("check");
