@@ -48,7 +48,7 @@ class _ChooseRoleState extends State<ChooseRole> {
         },
         padding: EdgeInsets.all(12),
         color: Color(0xFF11249F),
-        child: Text('Public Works Deparntment',
+        child: Text('Public Works Department',
             style: TextStyle(color: Colors.white, fontSize: 16)),
       ),
     );

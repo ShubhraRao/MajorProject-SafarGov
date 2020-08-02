@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:govtapp/screens/ER/erhome.dart';
 import 'package:govtapp/screens/ER/ermap.dart';
 import 'package:govtapp/screens/ER/fixeddetailser.dart';
+import 'package:govtapp/screens/ER/fixedermap.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:pdf/widgets.dart' as pdfLib;
 import 'package:path_provider/path_provider.dart';
@@ -62,6 +63,8 @@ class _PWDFixedReportState extends State<ERFixedReport> {
         newlist.add(listtravel[i]);
       }
     }
+
+    
     listtravel = newlist;
     setState(() {
       isLoading = true;
@@ -184,7 +187,7 @@ class _PWDFixedReportState extends State<ERFixedReport> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => ERViewMap(uid, widget.ward)));
+                              builder: (context) => FixedViewMap(uid, newlist)));
                     })
                 : SizedBox(width: 0.0),
             (maporreport == 1)

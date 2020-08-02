@@ -162,10 +162,11 @@ class _CaptureImageState extends State<CaptureImage> {
     var time = DateTime.now();
     final StorageReference firebaseStorageRef =
         FirebaseStorage.instance.ref().child('FixedPotholeImages/$time');
+        print("Storing");
     final StorageUploadTask task = firebaseStorageRef.putFile(_image);
     var downloadUrl = await (await task.onComplete).ref.getDownloadURL();
-    await databaseReference.collection("fixedReport").add({
-      'contractorName': widget.fname + " " + widget.lname,
+    databaseReference.collection("fixedReport").add({
+      'contractorName': widget.fname.trim() + " " + widget.lname.trim(),
       'phone': widget.mobnumber,
       'fixed':"false",
       'lat': lat,

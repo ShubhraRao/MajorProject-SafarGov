@@ -167,6 +167,12 @@ class _FixedDetailsState extends State<FixedDetails> {
                         doc.data["lon"].toString()),
                   ),
                 ]),
+                // DataRow(cells: [
+                //   DataCell(Text("Source: ")),
+                //   DataCell(
+                //     Text(doc.data["source"]),
+                //   ),
+                // ]),
               ],
             ),
             

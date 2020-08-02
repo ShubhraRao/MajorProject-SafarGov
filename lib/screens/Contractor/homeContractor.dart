@@ -174,7 +174,7 @@ class _HomeContractorState extends State<HomeContractor> {
                 title: Text("CAPTURE IMAGE", style: TextStyle(fontWeight: FontWeight.bold)),
                 onTap: () {
                   Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => CaptureImage()));
+                      MaterialPageRoute(builder: (context) => CaptureImage(fname: fname, lname: lname, mobnumber: phone,)));
                 },
               ),
               ListTile(

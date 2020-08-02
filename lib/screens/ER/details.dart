@@ -20,6 +20,20 @@ class _ERPotholeDetailsState extends State<ERPotholeDetails> {
   final firestoreInstance = Firestore.instance;
   bool isLoading = false;
 
+  var databaseReference= Firestore.instance;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    databaseReference
+          .collection("location_travel")
+          .document(doc.documentID)
+          .updateData({
+        'erSeen': "YES",
+      }).then((value) => print("Dome"));
+    super.initState();
+  }
+
   void _showShareDialog() {
     showDialog<bool>(
         context: context,
@@ -145,6 +159,12 @@ class _ERPotholeDetailsState extends State<ERPotholeDetails> {
                   DataCell(Text("Location: ")),
                   DataCell(
                     Text(doc.data["lat"].toString() + ", " + doc.data["lon"].toString()),
+                  ),
+                ]),
+                DataRow(cells: [
+                  DataCell(Text("Source: ")),
+                  DataCell(
+                    Text(doc.data["source"]),
                   ),
                 ]),
               ],

@@ -433,6 +433,13 @@ class _PWDReportState extends State<PWDReport> {
                                 Padding(
                                   padding: const EdgeInsets.all(10.0),
                                   child: Row(children: <Widget>[
+                                 (newlist[index].data['source'] == "Sensor" || newlist[index].data['Source'] == "Sensor" || newlist[index].data['source'] == "sensor" || newlist[index].data['Source'] == "sensor") ? Padding(
+                                   padding: const EdgeInsets.only(right: 12.0),
+                                   child: Icon(Icons.directions_car),
+                                 ): Padding(
+                                   padding: const EdgeInsets.only(right: 12.0),
+                                   child: Icon(Icons.photo_camera, color: (newlist[index].data["SurveyPriority"]=="High") ? Colors.red : (newlist[index].data["SurveyPriority"] =="IMedium") ? Colors.amber : Colors.green),
+                                 ),
                                     Expanded(
                                       child: Text(newlist[index].data["address"]),
                                     ),

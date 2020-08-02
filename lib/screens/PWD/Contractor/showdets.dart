@@ -146,6 +146,7 @@ class _DetailsComState extends State<DetailsCom> {
                               'subLocality': doc.data["subLocality"],
                               'NumberOfReportings': doc.data["NumberOfReportings"],
                               'contractorName': doc.data["contractorName"],
+                              'userid': doc.data["userid"],
                             }).then((value) {
                               // setState(() {
                               //   success = 1;

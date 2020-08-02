@@ -45,9 +45,11 @@ class _SendToUserState extends State<SendToUser> {
     String updatedocid;
     // print(reportlist[i].data["reportlist"]);
     for (int i = 0; i < reportlist.length; i++) {
+      print("Hello");
       if (reportlist[i].data["phone"] == user.data["phone"]) {
-        newlist.addAll(reportlist[i].data["reportlist"]);
-        newlist.addAll(selectedrep);
+
+        newlist.add(reportlist[i].data["reportlist"]);
+        newlist.add(selectedrep.toString().replaceAll('[', "").replaceAll("]", "").trim());
         setState(() {
           there = 1;
           updatedocid = reportlist[i].documentID;
@@ -57,17 +59,27 @@ class _SendToUserState extends State<SendToUser> {
         there = 0;
       }
     }
+    print(newlist.runtimeType);
     if (there == 1) {
       databaseReference
           .collection("pwdToContractorReports")
           .document(updatedocid)
           .updateData({
-        'reportlist': newlist,
+        'reportlist': newlist.toString().replaceAll('[', "").replaceAll("]", "").trim(),
         'pwdid': widget.pwdid,
         'timeStamp': DateTime.now()
       }).then((_) {
+        for (int i = 0; i < selectedrep.length; i++) {
+          databaseReference
+              .collection("location_travel")
+              .document(selectedrep[i])
+              .updateData({
+            'status': "STARTED",
+          });
+        }
+        //     .then((_) {
         showDialog(
-          barrierDismissible: false,
+            barrierDismissible: false,
             context: context,
             builder: (BuildContext context) {
               // return object of type Dialog
@@ -75,8 +87,7 @@ class _SendToUserState extends State<SendToUser> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(32.0))),
                 title: new Text("Success"),
-                content:
-                    new Text("Your report has been sent successfully."),
+                content: new Text("Your report has been sent successfully."),
                 actions: <Widget>[
                   new FlatButton(
                     child: new Text("Close"),
@@ -96,10 +107,10 @@ class _SendToUserState extends State<SendToUser> {
         'contractorName': user.data["fname"] + " " + user.data["lname"],
         'phone': user.data["phone"],
         'timeStamp': DateTime.now(),
-        'pwdid':
-            widget.pwdid, 
-            // 'PWD234',
-        'reportlist': selectedrep.toString(),
+        'pwdid': widget.pwdid,
+        // 'PWD234',
+        'reportlist': selectedrep.toString().replaceAll('[', "").replaceAll("]", "").trim(),
+        // selectedrep.toString(),
       }).then((_) {
         showDialog(
             context: context,
@@ -258,14 +269,15 @@ class _SendToUserState extends State<SendToUser> {
                             itemBuilder: (context, index) {
                               return ListTile(
                                 leading: Icon(Icons.send),
-                                title: Text(contusers[index].data["fname"] +
-                                    " " +
-                                    contusers[index].data["lname"], style: TextStyle(fontWeight: FontWeight.bold),),
-                                subtitle:
-                                    Text(contusers[index]
-                                      .data["conId"] + " | " + contusers[index]
-                                      .data["phone"]
-                                      .toString()),
+                                title: Text(
+                                  contusers[index].data["fname"] +
+                                      " " +
+                                      contusers[index].data["lname"],
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                subtitle: Text(contusers[index].data["conId"] +
+                                    " | " +
+                                    contusers[index].data["phone"].toString()),
                                 onTap: () {
                                   _confirmdialog(contusers[index]);
                                 },

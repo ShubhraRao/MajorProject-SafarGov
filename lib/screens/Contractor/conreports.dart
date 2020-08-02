@@ -62,15 +62,30 @@ class _ViewRecReportState extends State<ViewRecReport> {
         .getDocuments();
     listrep = querySnapshotreports.documents;
 
+    // print(listrep[0].data["contractorName"])
+    print(listrep[0].data["contractorName"]);
+    print(widget.fname);
+    print(widget.lname);
+    print(listrep[0].data["phone"]);
+    print(widget.phone);
+    List<String> latlon = List();
+    for(int i=0; i<listrep.length; i++)
+    {
+      
+    }
+    print(latlon);
     
-
     for (int i = 0; i < listbackup.length; i++) {
       for (int j = 0; j < listrep.length; j++) {
-        for (int k = 0; k < listrep[j].data["reportlist"].length; k++) {
-          if (listrep[j].data["contractorName"] ==
-                  widget.fname + " " + widget.lname &&
-              listrep[j].data["phone"] == widget.phone &&
-              listrep[j].data["reportlist"][k] == listbackup[i].documentID) {
+        latlon = listrep[j].data["reportlist"].toString().split(',');
+        print(latlon);
+        for (int k = 0; k < latlon.length; k++) {
+          if (listrep[j].data["contractorName"].toString().trim().toLowerCase() ==
+                  widget.fname.trim().toLowerCase() + " " + widget.lname.trim().toLowerCase() &&
+              listrep[j].data["phone"] == widget.phone
+               && latlon[k].trim()== listbackup[i].documentID.trim()
+              )
+               {
             newlist.add(listbackup[i]);
             
           }

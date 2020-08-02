@@ -253,6 +253,7 @@ class _PWDhomeState extends State<ERhome> {
 
   Widget _buildAppBar() {
     return AppBar(
+      automaticallyImplyLeading: false,
       flexibleSpace: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(

@@ -33,26 +33,38 @@ class _GetReportState extends State<GetReport> {
     'Oldest to Newest',
     'Newest to Oldest'
   ];
-    String _selectedSort;
-    int aa=0;
-
+  String _selectedSort;
+  int aa = 0;
 
   _GetReportState(this.ward, this.erid, this.list);
-    static GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
+  static GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   void initState() {
     // getlist();
+
     lastweek = DateTime.now().subtract(new Duration(days: 7));
     lastday = DateTime.now().subtract(const Duration(days: 1));
     setState(() {
       listtravel = list;
       filterlist();
     });
-    
 
     super.initState();
   }
+
+  var databaseReference = Firestore.instance;
+
+  // getlist() {
+  //   print("Sending");
+  //   for (int i = 0; i < list.length; i++) {
+  //     databaseReference
+  //         .collection("location_travel")
+  //         .document(list[i].documentID)
+  //         .updateData({
+  //       'erSeen': "NO",
+  //     }).then((value) => print("Dome"));
+  //   }
+  // }
 
   // getlist() async {
   //   QuerySnapshot querySnapshottravel =
@@ -68,10 +80,10 @@ class _GetReportState extends State<GetReport> {
   // }
 
   sortbypriority(listn) {
-    Comparator<DocumentSnapshot> sortById =
-        (a, b) => a.data["NumberOfReportings"].compareTo(b.data["NumberOfReportings"]);
+    Comparator<DocumentSnapshot> sortById = (a, b) =>
+        a.data["NumberOfReportings"].compareTo(b.data["NumberOfReportings"]);
     listn.sort(sortById);
-    
+
     print(listn[0].data["timeStamp"]);
     return listn;
   }
@@ -85,13 +97,13 @@ class _GetReportState extends State<GetReport> {
     return listn;
   }
 
-
   filterlist() {
     newlist.clear();
     print("filtering");
     print(listtravel);
     for (int i = 0; i < listtravel.length; i++) {
-      if (listtravel[i].data["subLocality"].toString().trim().toLowerCase() == ward.trim().toLowerCase()) {
+      if (listtravel[i].data["subLocality"].toString().trim().toLowerCase() ==
+          ward.trim().toLowerCase()) {
         newlist.add(listtravel[i]);
       }
     }
@@ -155,9 +167,15 @@ class _GetReportState extends State<GetReport> {
       pdfLib.MultiPage(
         build: (context) => [
           pdfLib.Table.fromTextArray(context: context, data: <List<String>>[
-            <String>['Priority'+"\t", 'Location', 'Address', 'Date', 'Source' + "\t"],
+            <String>[
+              'Priority' + "\t",
+              'Location',
+              'Address',
+              'Date',
+              'Source' + "\t"
+            ],
             ...newlist.map((item) => [
-                  item.data["NumberOfReportings"].toString()+"\t",
+                  item.data["NumberOfReportings"].toString() + "\t",
                   item.data["lat"].toString().substring(0, 7) +
                       ", " +
                       item.data["lon"].toString().substring(0, 7),
@@ -165,7 +183,12 @@ class _GetReportState extends State<GetReport> {
                   Jiffy(DateTime.parse(
                           item.data["timeStamp"].toDate().toString()))
                       .yMMMMdjm,
-                  (item.data['source'] == "Sensor" || item.data['Source'] == "Sensor" || item.data['source'] == "sensor" || item.data['Source'] == "sensor") ? "Travel" : "Image"
+                  (item.data['source'] == "Sensor" ||
+                          item.data['Source'] == "Sensor" ||
+                          item.data['source'] == "sensor" ||
+                          item.data['Source'] == "sensor")
+                      ? "Travel"
+                      : "Image"
                 ])
             // <List<String>>[ <String>[
             //   newlist.map((item) => [item.data["address"], [item.data["pincode"]], ],).toString()
@@ -183,17 +206,16 @@ class _GetReportState extends State<GetReport> {
 
     final String dir = (await getExternalStorageDirectory()).path;
     final String path = '$dir/PotholeReport_$name.pdf';
-    final File file = File(path); 
+    final File file = File(path);
     await file.writeAsBytes(pdf.save());
     print(path);
     print("Success");
-    _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content: Text("PDF downloaded in " + path)));
+    _scaffoldKey.currentState
+        .showSnackBar(SnackBar(content: Text("PDF downloaded in " + path)));
   }
 
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
@@ -217,149 +239,151 @@ class _GetReportState extends State<GetReport> {
         ],
       ),
       body: Column(
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            Align(
-              alignment: Alignment.topRight,
-                          child: DropdownButton(
-                      hint: Padding(
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              Align(
+                alignment: Alignment.topRight,
+                child: DropdownButton(
+                  hint: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text('SORT',
+                        style: TextStyle(
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF11249F))),
+                  ),
+                  value: _selectedSort,
+                  onChanged: (newSortValue) {
+                    setState(() {
+                      _selectedSort = newSortValue;
+                    });
+                  },
+                  items: dropdownSort.map((sortval) {
+                    return DropdownMenuItem(
+                      child: Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Text('SORT',
+                        child: new Text(sortval,
                             style: TextStyle(
                                 fontSize: 14.0,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w300,
                                 color: Color(0xFF11249F))),
                       ),
-                      value: _selectedSort,
-                      onChanged: (newSortValue) {
-                        setState(() {
-                          _selectedSort = newSortValue;
-                        });
+                      value: sortval,
+                      onTap: () {
+                        if (sortval == "Priority") {
+                          setState(() {
+                            aa = 1;
+                            // newlist = listtravel;
+                            newlist = sortbypriority(newlist);
+                            newlist = newlist.reversed.toList();
+                            // all = 1;
+                          });
+                        } else if (sortval == "Oldest to Newest") {
+                          setState(() {
+                            aa = 2;
+                            // newlist = listtravel;
+                            // newlist = sortbydate(newlist);
+                            // all = 1;
+                            // newlist.clear();
+                            print(newlist[0].data["timeStamp"].toDate());
+                          });
+                        } else if (sortval == "Newest to Oldest") {
+                          setState(() {
+                            aa = 3;
+                            // newlist = listtravel;
+                            newlist = sortbydate(newlist);
+                            newlist = newlist.reversed.toList();
+
+                            print(newlist[0].data["timeStamp"].toDate());
+                            // all = 1;
+                          });
+                        }
                       },
-                      items: dropdownSort.map((sortval) {
-                        return DropdownMenuItem(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: new Text(sortval,
-                                style: TextStyle(
-                                    fontSize: 14.0,
-                                    fontWeight: FontWeight.w300,
-                                    color: Color(0xFF11249F))),
-                          ),
-                          value: sortval,
-                          onTap: () {
-                            if (sortval == "Priority") {
-                              setState(() {
-                                aa=1;
-                                // newlist = listtravel;
-                                newlist = sortbypriority(newlist);
-                                newlist = newlist.reversed.toList();
-                                // all = 1;
-                              });
-                              
-                            } else if (sortval == "Oldest to Newest") {
-                              
-                              setState(() {
-                                aa=2;
-                                // newlist = listtravel;
-                                // newlist = sortbydate(newlist);
-                                // all = 1;
-                                // newlist.clear();
-                                print(newlist[0].data["timeStamp"].toDate());
-                              });
-                            } else if (sortval == "Newest to Oldest") {
-                              setState(() {
-                                aa=3;
-                                // newlist = listtravel;
-                                newlist = sortbydate(newlist);
-                                newlist = newlist.reversed.toList();
-                                
-                                print(newlist[0].data["timeStamp"].toDate());
-                                // all = 1;
-                              });
-                            }
-                          },
-                        );
-                      }).toList(),
-                    ),
-            )
-                
-          ],
-        ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16.0, 12.0, 12.0, 12.0),
-                    child: Text("Priority", style: TextStyle(fontWeight: FontWeight.bold),),
-                  ),
-                  ],
+                    );
+                  }).toList(),
                 ),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                    ),
-                    child: ClipRRect(
-                      child: Padding(
-                        padding: const EdgeInsets.all(0.0),
-                        child: ListView.builder(
-                            itemCount: newlist.length,
-                            itemBuilder: (context, index) {
-                              print("Sett");
-                              print(aa);
-                              if(aa==2)
-                              {
-                                newlist = sortbydate(newlist);
-                              }
-                              else if(aa==3)
-                              {
-                                newlist = sortbydate(newlist);
-                                 newlist = List.from(newlist.reversed);
-                               }
-                               else if(aa==1)
-                               {
-                                 newlist = sortbypriority(newlist);
-                                 newlist = List.from(newlist.reversed);
-                               }
-                              
-                             
-                              print(newlist[0].data["timeStamp"].toDate());
-                              return GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                ERPotholeDetails(
-                                                    erid, newlist[index])));
-                                  },
-                                  child: Row(
-                                    children: <Widget>[
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Text(
-                                              newlist[index].data["address"]),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Text(newlist[index]
-                                            .data["NumberOfReportings"]
-                                            .toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0)),
-                                      ),
-                                    ],
-                                  ));
-                            }),
-                      ),
-                    ),
-                  ),
+              )
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 12.0, 12.0, 12.0),
+                child: Text(
+                  "Priority",
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-              ],
+              ),
+            ],
+          ),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+              ),
+              child: ClipRRect(
+                child: Padding(
+                  padding: const EdgeInsets.all(0.0),
+                  child: ListView.builder(
+                      itemCount: newlist.length,
+                      itemBuilder: (context, index) {
+                        print("Sett");
+                        print(aa);
+                        if (aa == 2) {
+                          newlist = sortbydate(newlist);
+                        } else if (aa == 3) {
+                          newlist = sortbydate(newlist);
+                          newlist = List.from(newlist.reversed);
+                        } else if (aa == 1) {
+                          newlist = sortbypriority(newlist);
+                          newlist = List.from(newlist.reversed);
+                        }
+
+                        print(newlist[0].data["timeStamp"].toDate());
+                        return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => ERPotholeDetails(
+                                          erid, newlist[index])));
+                            },
+                            child: Row(
+                              children: <Widget>[
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                  child: (newlist[index]
+                                          .data["erSeen"] == "YES") ?
+                                  Icon(Icons.check, color:Colors.blue, size: 16.0) : Icon(Icons.brightness_1, color:Colors.red, size: 9.0)
+                                ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(newlist[index].data["address"]),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                      newlist[index]
+                                          .data["NumberOfReportings"]
+                                          .toString(),
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20.0)),
+                                ),
+                              ],
+                            ));
+                      }),
+                ),
+              ),
             ),
+          ),
+        ],
+      ),
     );
   }
 }

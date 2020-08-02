@@ -161,7 +161,7 @@ class _LoginCon2State extends State<LoginCon2> {
             Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => HomeContractor(fname: "Praveen", lname: "Desai", phone: "8867901072")));
+                              builder: (context) => HomeContractor(fname: "Praveen", lname: "Desai", phone: "7259780569")));
           },)
         ],
       ),

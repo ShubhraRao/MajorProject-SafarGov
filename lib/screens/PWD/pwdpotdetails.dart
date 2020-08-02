@@ -207,6 +207,25 @@ class _ERPotholeDetailsState extends State<PWDPotholeDetails> {
                         doc.data["lon"].toString()),
                   ),
                 ]),
+              DataRow(cells: [
+                  DataCell(Text("Source: ")),
+                  (doc.data['source'] == "Sensor" || doc.data['Source'] == "Sensor" || doc.data['source'] == "sensor" || doc.data['Source'] == "sensor") ?
+                  DataCell(Text("Travel Mode")) : 
+                  DataCell(
+                    (doc.data["SurveyPriority"]!=null)?
+                    Text("Camera Mode (" + doc.data["SurveyPriority"].toString().toUpperCase() +" PRIORITY)"): Text("Camera Mode")) 
+                ]),
+                DataRow(cells: [
+                  DataCell(Text("Source: ")),
+                  DataCell(
+                    Text(doc.data["source"]),
+                  ),
+                ]),
+                // DataRow(cells: [
+                //   DataCell(Text("Survey details: ")),
+                //   (doc.data['source'] == "Sensor" || doc.data['Source'] == "Sensor" || doc.data['source'] == "sensor" || doc.data['Source'] == "sensor") ?
+                //   DataCell(Text("Travel Mode")) : DataCell(Text("Camera Mode")) 
+                // ]),
               ],
             ),
             Padding(
@@ -229,7 +248,8 @@ class _ERPotholeDetailsState extends State<PWDPotholeDetails> {
                       'timeStamp': DateTime.now(),
                       'pincode': doc.data["pincode"],
                       'subLocality': doc.data["subLocality"],
-                      'NumberOfReportings': doc.data["NumberOfReportings"]
+                      'NumberOfReportings': doc.data["NumberOfReportings"],
+                      'userid': doc.data["userid"],
                     }).then((value) {
                       setState(() {
                         success = 1;
