@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "401011437665-629urcn7271ggd9c2j5rrie2cfvufv02.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.govtapp",
+            "certificate_hash": "631da53b8a744fc16168d8b0e10845d00c8144ca"
+          }
+        },
+        {
           "client_id": "401011437665-gv5updfuuervn61vhkjl9fqni8l8o3vi.apps.googleusercontent.com",
           "client_type": 3
         }
